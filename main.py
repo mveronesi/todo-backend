@@ -3,9 +3,16 @@ from sqlalchemy.orm import Session
 from database import TodoDB, get_db
 from models import Todo
 import uuid
+from typing import List
 
 
 app = FastAPI()
+
+
+@app.get("/todos/", response_model=List[Todo])
+def read_todos(db: Session = Depends(get_db)):
+    todo = db.query(TodoDB)
+    return todo if todo is not None else []
 
 
 @app.post("/todos/", response_model=Todo)
