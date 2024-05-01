@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from database import TodoDB, get_db
 from models import Todo
@@ -7,6 +8,14 @@ from typing import List
 
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/todos/", response_model=List[Todo])
@@ -17,6 +26,7 @@ def read_todos(db: Session = Depends(get_db)):
 
 @app.post("/todos/", response_model=Todo)
 def create_todo(todo: Todo, db: Session = Depends(get_db)):
+    print("HERE")
     db_todo = TodoDB(**todo.model_dump())
     db.add(db_todo)
     db.commit()
