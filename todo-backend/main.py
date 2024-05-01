@@ -3,6 +3,8 @@ from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy import Boolean, Column, Integer, String, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Date
+from datetime import date
 from pydantic import BaseModel
 
 Base = declarative_base()
@@ -14,12 +16,14 @@ class TodoDB(Base):
     text = Column(String, index=True)
     done = Column(Boolean, default=False)
     important = Column(Boolean, default=False)
+    date = Column(Date, default=date.today)
 
 
 class TodoBase(BaseModel):
     text: str
     done: bool
     important: bool
+    date: date
 
 
 class Todo(TodoBase):
