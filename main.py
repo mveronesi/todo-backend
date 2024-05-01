@@ -1,19 +1,15 @@
-import uuid
-from typing import List
 from fastapi import FastAPI, HTTPException, Depends, status
 from sqlalchemy.orm import Session
 from database import TodoDB, get_db
-from models import Todo, TodoBase
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from models import Todo
+import uuid
 
 
 app = FastAPI()
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
 
 @app.post("/todos/", response_model=Todo)
-def create_todo(todo: TodoBase, db: Session = Depends(get_db)):
+def create_todo(todo: Todo, db: Session = Depends(get_db)):
     db_todo = TodoDB(**todo.model_dump())
     db.add(db_todo)
     db.commit()
@@ -23,7 +19,8 @@ def create_todo(todo: TodoBase, db: Session = Depends(get_db)):
 
 @app.get("/todos/{todo_id}", response_model=Todo)
 def read_todo(todo_id: str, db: Session = Depends(get_db)):
-    todo = db.query(TodoDB).filter(TodoDB.id == todo_id).first()
+    todo_uuid = uuid.UUID(todo_id)
+    todo = db.query(TodoDB).filter(TodoDB.id == todo_uuid).first()
     if todo is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
@@ -32,9 +29,9 @@ def read_todo(todo_id: str, db: Session = Depends(get_db)):
     return todo
 
 
-@app.put("/todos/{todo_id}", response_model=Todo)
-def update_todo(todo_id: str, todo: TodoBase, db: Session = Depends(get_db)):
-    db_todo = db.query(TodoDB).filter(TodoDB.id == todo_id).first()
+@app.put("/todos/", response_model=Todo)
+def update_todo(todo: Todo, db: Session = Depends(get_db)):
+    db_todo = db.query(TodoDB).filter(TodoDB.id == todo.id).first()
     if db_todo is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
@@ -48,7 +45,8 @@ def update_todo(todo_id: str, todo: TodoBase, db: Session = Depends(get_db)):
 
 @app.delete("/todos/{todo_id}")
 def delete_todo(todo_id: str, db: Session = Depends(get_db)):
-    todo = db.query(TodoDB).filter(TodoDB.id == todo_id).first()
+    todo_uuid = uuid.UUID(todo_id)
+    todo = db.query(TodoDB).filter(TodoDB.id == todo_uuid).first()
     if todo is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
@@ -57,14 +55,3 @@ def delete_todo(todo_id: str, db: Session = Depends(get_db)):
     db.delete(todo)
     db.commit()
     return {"detail": "Todo deleted"}
-
-
-@app.get("/todos/user/{user_id}", response_model=List[Todo])
-def read_user_todos(user_id: uuid.UUID, db: Session = Depends(get_db)):
-    todos = db.query(TodoDB).filter(TodoDB.user_id == user_id).all()
-    if not todos:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="No todos found for this user"
-            )
-    return todos
