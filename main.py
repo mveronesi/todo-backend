@@ -3,9 +3,8 @@ from typing import List
 from fastapi import FastAPI, HTTPException, Depends, status
 from sqlalchemy.orm import Session
 from database import TodoDB, get_db
-from models import Todo, TodoBase, Token
+from models import Todo, TodoBase
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-import auth
 
 
 app = FastAPI()
@@ -69,16 +68,3 @@ def read_user_todos(user_id: uuid.UUID, db: Session = Depends(get_db)):
             detail="No todos found for this user"
             )
     return todos
-
-
-@app.post("/token", response_model=Token)
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = auth.authenticate_user(db, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    access_token = auth.create_access_token(data={"sub": user.email})
-    return {"access_token": access_token, "token_type": "bearer"}
