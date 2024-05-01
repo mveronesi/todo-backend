@@ -49,6 +49,7 @@ def get_db():
     finally:
         db.close()
 
+
 @app.post("/todos/", response_model=Todo)
 def create_todo(todo: TodoBase, db: Session = Depends(get_db)):
     db_todo = TodoDB(**todo.model_dump())
