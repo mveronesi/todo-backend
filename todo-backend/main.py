@@ -3,9 +3,10 @@ from fastapi import FastAPI, HTTPException, Depends
 from sqlalchemy import Boolean, Column, Integer, String, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Date
+from sqlalchemy import Date, UUID
 from datetime import date
 from pydantic import BaseModel
+import uuid
 
 Base = declarative_base()
 
@@ -17,6 +18,7 @@ class TodoDB(Base):
     done = Column(Boolean, default=False)
     important = Column(Boolean, default=False)
     date = Column(Date, default=date.today)
+    user_id = Column(UUID(as_uuid=True), default=uuid.uuid4)
 
 
 class TodoBase(BaseModel):
@@ -24,6 +26,7 @@ class TodoBase(BaseModel):
     done: bool
     important: bool
     date: date
+    user_id: uuid.UUID
 
 
 class Todo(TodoBase):
@@ -82,3 +85,11 @@ def delete_todo(todo_id: str, db: Session = Depends(get_db)):
     db.delete(todo)
     db.commit()
     return {"detail": "Todo deleted"}
+
+
+@app.get("/todos/user/{user_id}", response_model=List[Todo])
+def read_user_todos(user_id: uuid.UUID, db: Session = Depends(get_db)):
+    todos = db.query(TodoDB).filter(TodoDB.user_id == user_id).all()
+    if not todos:
+        raise HTTPException(status_code=404, detail="No todos found for this user")
+    return todos
