@@ -20,8 +20,8 @@ app.add_middleware(
 
 @app.get("/todos/", response_model=List[Todo])
 def read_todos(db: Session = Depends(get_db)):
-    todo = db.query(TodoDB)
-    return todo if todo is not None else []
+    todos = db.query(TodoDB).order_by(TodoDB.done, TodoDB.important.desc(), TodoDB.date).all()
+    return todos if todos is not None else []
 
 
 @app.post("/todos/", response_model=Todo)
