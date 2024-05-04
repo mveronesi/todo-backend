@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  todo-backend:
+    build:
+      context: backend-app
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+  
+  todo-frontend:
+    build:
+      context: todo-pinia-example
+      dockerfile: Dockerfile
+    ports:
+      - 80:80
+    depends_on:
+      - todo-backend
