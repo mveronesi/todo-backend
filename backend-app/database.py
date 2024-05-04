@@ -17,7 +17,7 @@ class TodoDB(Base):
     date = Column(Date, default=date.today)
 
 
-engine = create_engine("sqlite:///./test.db")
+engine = create_engine("sqlite:///./db/test.db")
 Base.metadata.create_all(bind=engine)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
