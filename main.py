@@ -20,7 +20,7 @@ app.add_middleware(
 
 @app.get("/todos/", response_model=List[Todo])
 def read_todos(db: Session = Depends(get_db)):
-    todos = db.query(TodoDB).order_by(TodoDB.done, TodoDB.important.desc(), TodoDB.date).all()
+    todos = db.query(TodoDB).order_by(TodoDB.done, TodoDB.important.desc(), TodoDB.date.desc()).all()
     return todos if todos is not None else []
 
 
@@ -38,7 +38,7 @@ def create_todo(todo: Todo, db: Session = Depends(get_db)):
 def read_todo(content: str, db: Session = Depends(get_db)):
     todos = db.query(TodoDB) \
         .filter(TodoDB.text.like(f"%{content}%")) \
-        .order_by(TodoDB.done, TodoDB.important.desc(), TodoDB.date) \
+        .order_by(TodoDB.done, TodoDB.important.desc(), TodoDB.date.desc()) \
         .all()
     return todos if todos is not None else []
 
