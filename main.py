@@ -36,7 +36,10 @@ def create_todo(todo: Todo, db: Session = Depends(get_db)):
 
 @app.get("/todos/{content}", response_model=List[Todo])
 def read_todo(content: str, db: Session = Depends(get_db)):
-    todos = db.query(TodoDB).filter(TodoDB.text.like(f"%{content}%")).all()
+    todos = db.query(TodoDB) \
+        .filter(TodoDB.text.like(f"%{content}%")) \
+        .order_by(TodoDB.done, TodoDB.important.desc(), TodoDB.date) \
+        .all()
     return todos if todos is not None else []
 
 
