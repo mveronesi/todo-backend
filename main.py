@@ -34,16 +34,10 @@ def create_todo(todo: Todo, db: Session = Depends(get_db)):
     return db_todo
 
 
-@app.get("/todos/{todo_id}", response_model=Todo)
-def read_todo(todo_id: str, db: Session = Depends(get_db)):
-    todo_uuid = uuid.UUID(todo_id)
-    todo = db.query(TodoDB).filter(TodoDB.id == todo_uuid).first()
-    if todo is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Todo not found"
-            )
-    return todo
+@app.get("/todos/{content}", response_model=List[Todo])
+def read_todo(content: str, db: Session = Depends(get_db)):
+    todos = db.query(TodoDB).filter(TodoDB.text.like(f"%{content}%")).all()
+    return todos if todos is not None else []
 
 
 @app.put("/todos/", response_model=Todo)
